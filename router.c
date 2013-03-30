@@ -18,9 +18,13 @@
 #include <sys/fcntl.h>
 #include "common.h"
 
+#define FLAG_ON 1
+#define FLAG_OFF 0
+
 //Input Arguments:
 //argv[1] is the number of queues
-//argv[2] is the router dequeuing interval, or service rate in packet/millisec
+//argv[2] is the router dequeuing interval, or service rate in milliseconds,
+//  so one packet will be dequeued and sent per dequeuing interval
 //argv[3] is the maximum queue size (in packets)
 
 int main(int argc, char *argv[]) {
@@ -42,12 +46,14 @@ int main(int argc, char *argv[]) {
     int router_packet_count = 0, enq_return = 0, which_q = 0, q_index = 0;
     struct q_elem *node, *dqd_pkt = NULL;
     struct router_q *q1, *q2;
+    int packets_sent = 0, sent_d1 = 0, sent_d2 = 0; 
     
     //Variables used for managing router service rate
     struct timeval last_time;
     struct timeval curr_time;
-    unsigned int delta_time;
-    
+    time_t delta_time = 0; 
+    unsigned int sent_flag = 0;
+        
     //Parsing input arguments
     if (argc!= 4) {
         perror("Router: incorrect number of command-line arguments\n");
@@ -123,16 +129,20 @@ int main(int argc, char *argv[]) {
     memset(q1, 0, sizeof q1);
     memset(q2, 0, sizeof q2);
     memset(node, 0, sizeof node);
+    memset(&last_time, 0, sizeof last_time);
+    memset(&curr_time, 0, sizeof curr_time);
     
     while (1) {
         gettimeofday(&curr_time, NULL);
-        delta_time = ((curr_time.tv_usec + curr_time.tv_sec * ONE_MILLION) - (last_time.tv_sec +last_time.tv_usec * ONE_MILLION))/1000;
+        //delta_time is the time elapsed in milliseconds
+        delta_time =abs(((curr_time.tv_usec + curr_time.tv_sec * ONE_MILLION) - (last_time.tv_usec +last_time.tv_sec * ONE_MILLION))/1000);
         
         packet_success = recvfrom(listen_sockfd, buff, sizeof (struct msg_payload), 0, (struct sockaddr *)&their_addr, &addr_len);
 
         if (packet_success > 0) {//router has received a packet
             router_packet_count++;
             printf("Total packets recvfrom by router so far: %d\n", router_packet_count);
+            printf("Delta time is %d\n", (int)delta_time);
             received_pkt = buff;
             //received packet becomes buffer within the linked-list node 
             node->buffer = received_pkt; 
@@ -156,7 +166,8 @@ int main(int argc, char *argv[]) {
             }
         }
         
-        if (delta_time >= dq_time) {
+        if (((delta_time % dq_time) == 0) && sent_flag == FLAG_OFF) {
+            printf("Delta time >= dequeue rate for router\n"); 
             if (q_amount == 1) {
                 dqd_pkt = dequeue(q1);
             }
@@ -171,13 +182,25 @@ int main(int argc, char *argv[]) {
             if (dqd_pkt != NULL) {
                 if (dqd_pkt->buffer->receiver_id == 1) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
+                    sent_d1++;
+                    printf("Pkts sent to dest_1 so far: %d\n", sent_d1); 
                 } else {
                    sent_success = sendto(d2_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest2_info->ai_addr, dest2_info->ai_addrlen);
+                    sent_d2++;
+                    printf("Pkts sent to dest_2 so far: %d\n", sent_d2);
                 }
+                packets_sent++;
+                printf("Overall total pkts sent by router so far: %d\n", packets_sent); 
                 free(buff);
                 free(node);
             }
-            last_time = curr_time;
+            //last_time = curr_time;
+            sent_flag = FLAG_ON;
+            printf("Delta time: %d, FLAG ON - 1 pkt sent\n", (int)delta_time); 
+        }
+        if ((delta_time % dq_time) != 0) {
+            sent_flag = FLAG_OFF;
+            printf("Delta time: %d, FLAG OFF - no pkt sent\n", (int)delta_time); 
         }
     }
     close(listen_sockfd);
