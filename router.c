@@ -16,6 +16,7 @@
 #include <signal.h>
 #include <sys/time.h>
 #include <sys/fcntl.h>
+#include <math.h>
 #include "common.h"
 
 #define FLAG_ON 1
@@ -106,7 +107,7 @@ int main(int argc, char *argv[]) {
     //Create datagram socket for Receiver 2
     //Receiver 2 is on same computer as router, use localhost information
     if((r2_return_val = getaddrinfo("127.0.0.1", get_receiver_port(2), &hints, &dest2_info)) != 0) {
-        perror("Router: unable to get address infor for Destination 2\n");
+        perror("Router: unable to get address info for Destination 2\n");
         return 5;
     }
     
@@ -125,12 +126,13 @@ int main(int argc, char *argv[]) {
     q2 = malloc(sizeof (struct router_q));
     node = malloc(sizeof (struct q_elem));
     
-    memset(buff, 0, sizeof buff);
-    memset(q1, 0, sizeof q1);
-    memset(q2, 0, sizeof q2);
-    memset(node, 0, sizeof node);
+    memset(buff, 0, sizeof (struct msg_payload));
+    memset(q1, 0, sizeof (struct router_q));
+    memset(q2, 0, sizeof (struct router_q));
+    memset(node, 0, sizeof (struct q_elem));
     memset(&last_time, 0, sizeof last_time);
     memset(&curr_time, 0, sizeof curr_time);
+    gettimeofday(&last_time, NULL); 
     
     while (1) {
         gettimeofday(&curr_time, NULL);
@@ -141,8 +143,8 @@ int main(int argc, char *argv[]) {
 
         if (packet_success > 0) {//router has received a packet
             router_packet_count++;
-            printf("Total packets recvfrom by router so far: %d\n", router_packet_count);
-            printf("Delta time is %d\n", (int)delta_time);
+            //printf("Total packets recvfrom by router so far: %d\n", router_packet_count);
+            //printf("Delta time is %d\n", (int)delta_time);
             received_pkt = buff;
             //received packet becomes buffer within the linked-list node 
             node->buffer = received_pkt; 
@@ -162,14 +164,15 @@ int main(int argc, char *argv[]) {
                 buff = malloc(sizeof (struct msg_payload));
                 node = malloc(sizeof (struct q_elem));
                 memset(buff, 0, sizeof buff);
-                memset(&node, 0, sizeof node); 
+                memset(node, 0, sizeof node); 
             }
         }
         
-        if (((delta_time % dq_time) == 0) && sent_flag == FLAG_OFF) {
-            printf("Delta time >= dequeue rate for router\n"); 
+        if ((delta_time >= dq_time) && sent_flag == FLAG_OFF) {
+            printf("Delta time: %d, >= dequeue rate for router\n", (int)delta_time);
             if (q_amount == 1) {
                 dqd_pkt = dequeue(q1);
+                //printf("Packet Sequence number %d\n", dqd_pkt->buffer->seq);
             }
             if (q_amount == 2) {
                 which_q = q_index++%2;
@@ -183,24 +186,22 @@ int main(int argc, char *argv[]) {
                 if (dqd_pkt->buffer->receiver_id == 1) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
                     sent_d1++;
-                    printf("Pkts sent to dest_1 so far: %d\n", sent_d1); 
+                    printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
                 } else {
                    sent_success = sendto(d2_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest2_info->ai_addr, dest2_info->ai_addrlen);
                     sent_d2++;
                     printf("Pkts sent to dest_2 so far: %d\n", sent_d2);
                 }
                 packets_sent++;
-                printf("Overall total pkts sent by router so far: %d\n", packets_sent); 
-                free(buff);
-                free(node);
+                printf("Overall total pkts sent by router so far: %d\n", packets_sent);
+                free(dqd_pkt->buffer);
+                free(dqd_pkt);
             }
-            //last_time = curr_time;
+            gettimeofday(&last_time, NULL); 
             sent_flag = FLAG_ON;
-            printf("Delta time: %d, FLAG ON - 1 pkt sent\n", (int)delta_time); 
         }
-        if ((delta_time % dq_time) != 0) {
+        if (delta_time < dq_time) {
             sent_flag = FLAG_OFF;
-            printf("Delta time: %d, FLAG OFF - no pkt sent\n", (int)delta_time); 
         }
     }
     close(listen_sockfd);

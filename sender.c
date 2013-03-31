@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <math.h>
 #include "common.h"
 
 //Input Arguments:
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
     struct msg_payload payload;
     struct timeval start_time;
     struct timeval curr_time;
-    unsigned int delta_time;
+    time_t delta_time = 0;
     
     //Parsing input arguments
     if (argc != 6) {
@@ -65,8 +66,11 @@ int main(int argc, char *argv[]) {
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
     
+    /*
+     * DEBUGGING: CHANGED ROUTER_PORT TO get_receiver_port(1)
+     */
     //Get target's address information
-    if ((return_val = getaddrinfo(dest_ip, ROUTER_PORT, &hints,
+    if ((return_val = getaddrinfo(dest_ip, get_receiver_port(1), &hints,
                           &receiver_info)) != 0) {
         perror("Sender: unable to get target's address info\n");
         return 2;
@@ -81,21 +85,23 @@ int main(int argc, char *argv[]) {
     //Establishing the packet: filling packet information
     memset(&payload, 0, sizeof payload);
     buffer = &payload;
-    buffer->seq = seq++;
-    buffer->sender_id = sender_id;
-    buffer->receiver_id = receiver_id;
-    buffer->timestamp = 0;
+    buffer->seq = htons((short)seq++);
+    buffer->sender_id = htons((short)sender_id);
+    buffer->receiver_id = htons((short)receiver_id);
+    buffer->timestamp = htons((short) 0);
     gettimeofday(&start_time, NULL);
     
     while ((delta_time / ONE_MILLION) < duration) {
+        //printf("%s: payload size is %f Bytes\n", __func__, (double)sizeof(payload));
+        printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp-%d\n", ntohs(buffer->seq), ntohs(buffer->sender_id), ntohs(buffer->receiver_id), ntohs(buffer->timestamp));
         packet_success = sendto(sockfd, buffer, sizeof(struct msg_payload), 0, receiver_info->ai_addr, receiver_info->ai_addrlen);
-        poisson_delay(r);
+        poisson_delay((double)r);
         gettimeofday(&curr_time, NULL);
         delta_time = (curr_time.tv_sec * ONE_MILLION + curr_time.tv_usec) - (start_time.tv_sec * ONE_MILLION + start_time.tv_usec);
-        buffer->timestamp = delta_time;
-        buffer->seq = seq++;
+        buffer->timestamp = htons((short)delta_time);
+        buffer->seq = htons((short)seq++);
         printf("Sender: Total packets sent so far: %d\n", seq);
-        printf("Sender: Delta time: %d usec\n", delta_time); 
+        //printf("Sender: Delta time: %d usec\n", (int)delta_time);
     }
     close(sockfd);
     return 0; 
