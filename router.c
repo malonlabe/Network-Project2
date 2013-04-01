@@ -154,10 +154,11 @@ int main(int argc, char *argv[]) {
                 enq_return = enqueue(node, q1, max_q_size);
             }
             if (q_amount > 1) {
-                if (node->buffer->receiver_id = 1) {
+                host_recv_id = ntohs(node->buffer->receiver_id); 
+                if ((int)host_recv_id == 1) {
                    enq_return = enqueue(node, q1, max_q_size);
                 }
-                if (node->buffer->receiver_id = 2) {
+                if ((int)host_recv_id == 2) {
                     enq_return = enqueue(node, q2, max_q_size);
                 }
             }
@@ -189,7 +190,8 @@ int main(int argc, char *argv[]) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
                     sent_d1++;
                     printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
-                } else {
+                }
+                if ((int)host_recv_id == 2) {
                    sent_success = sendto(d2_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest2_info->ai_addr, dest2_info->ai_addrlen);
                     sent_d2++;
                     printf("Pkts sent to dest_2 so far: %d\n", sent_d2);

@@ -15,9 +15,9 @@ struct msg_payload {
     unsigned int seq; //packet Sequence ID, 4 bytes
     //The timestamp is the delta_time, which is the calculated delta time between
     //the first packet sent and the current time (now) in microseconds
-    unsigned int timestamp;
-    unsigned int sender_id;
-    unsigned int receiver_id;
+    unsigned int timestamp; //4 bytes
+    unsigned int sender_id; //4 bytes
+    unsigned int receiver_id; //4 bytes
     unsigned char msg[112];
 } __pack__; //pack so that the CPU does not assign spacing between fields
 
@@ -40,7 +40,7 @@ extern int enqueue (struct q_elem *elem, struct router_q *q, unsigned int max_q_
 
 extern struct q_elem *dequeue (struct router_q *q);
 
-extern void poisson_delay (unsigned int mean);
+extern void poisson_delay (double mean);
 
 extern char *get_receiver_port(unsigned int receiver_id);
 #endif

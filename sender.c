@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
      * DEBUGGING: CHANGED ROUTER_PORT TO get_receiver_port(1)
      */
     //Get target's address information
-    if ((return_val = getaddrinfo(dest_ip, get_receiver_port(1), &hints,
+    if ((return_val = getaddrinfo(dest_ip, ROUTER_PORT, &hints,
                           &receiver_info)) != 0) {
         perror("Sender: unable to get target's address info\n");
         return 2;
@@ -95,12 +95,12 @@ int main(int argc, char *argv[]) {
         //printf("%s: payload size is %f Bytes\n", __func__, (double)sizeof(payload));
         printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp-%d\n", ntohs(buffer->seq), ntohs(buffer->sender_id), ntohs(buffer->receiver_id), ntohs(buffer->timestamp));
         packet_success = sendto(sockfd, buffer, sizeof(struct msg_payload), 0, receiver_info->ai_addr, receiver_info->ai_addrlen);
+        printf("Sender: Total packets sent so far: %d\n", seq);
         poisson_delay((double)r);
         gettimeofday(&curr_time, NULL);
         delta_time = (curr_time.tv_sec * ONE_MILLION + curr_time.tv_usec) - (start_time.tv_sec * ONE_MILLION + start_time.tv_usec);
         buffer->timestamp = htons((short)delta_time);
         buffer->seq = htons((short)seq++);
-        printf("Sender: Total packets sent so far: %d\n", seq);
         //printf("Sender: Delta time: %d usec\n", (int)delta_time);
     }
     close(sockfd);

@@ -16,6 +16,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <math.h>
 #include "common.h"
 
 //Get the socket address, IPv6 or IPv6 (taken from Beej's guide)
@@ -42,13 +43,14 @@ int enqueue (struct q_elem *elem, struct router_q *q, unsigned int max_q_size) {
     q->tail = elem;
     q->q_size++;
     elem->next = NULL;
+    printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
     return 0; 
 }
 
 //Dequeue packets from linked list
 struct q_elem *dequeue (struct router_q *q) {
     struct q_elem *elem = NULL;
-    
+    printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
     if (q->head == NULL) {
         return NULL;
     } else {
@@ -64,8 +66,27 @@ struct q_elem *dequeue (struct router_q *q) {
 }
 
 //Packet delay time, generates a time delay according to a poisson distribution
-void poisson_delay(unsigned int mean) {
+void poisson_delay(double mean) {
     
+    double l = 0, p = 1, rand_num = 0;
+    int k = 0, delay_time = 0;
+    struct timeval curr_time;
+    
+    l = exp(-1 * mean);
+
+    do {
+        k++;
+        gettimeofday(&curr_time, NULL); 
+        srand(curr_time.tv_usec); //seed random number with current time
+        rand_num = rand()/(double)RAND_MAX; 
+        p = p * rand_num;
+        //printf("%s line %d p is: %f\n", __func__, __LINE__, p);
+    } while (p > l); 
+    
+    delay_time = k - 1;
+    printf("%s line %d delay is: %d milliseconds\n", __func__, __LINE__, delay_time);
+    usleep((useconds_t) (delay_time * 1000)); //usleep is in microseconds
+     
 }
 
 //Function to retreive the port for a given receiver ID
