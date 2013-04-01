@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
     int router_packet_count = 0, enq_return = 0, which_q = 0, q_index = 0;
     struct q_elem *node, *dqd_pkt = NULL;
     struct router_q *q1, *q2;
-    int packets_sent = 0, sent_d1 = 0, sent_d2 = 0; 
+    int packets_sent = 0, sent_d1 = 0, sent_d2 = 0;
+    short host_recv_id = 0; 
     
     //Variables used for managing router service rate
     struct timeval last_time;
@@ -169,7 +170,7 @@ int main(int argc, char *argv[]) {
         }
         
         if ((delta_time >= dq_time) && sent_flag == FLAG_OFF) {
-            printf("Delta time: %d, >= dequeue rate for router\n", (int)delta_time);
+            //printf("Delta time: %d, >= dequeue rate for router\n", (int)delta_time);
             if (q_amount == 1) {
                 dqd_pkt = dequeue(q1);
                 //printf("Packet Sequence number %d\n", dqd_pkt->buffer->seq);
@@ -183,7 +184,8 @@ int main(int argc, char *argv[]) {
                 }
             }
             if (dqd_pkt != NULL) {
-                if (dqd_pkt->buffer->receiver_id == 1) {
+                host_recv_id = ntohs(dqd_pkt->buffer->receiver_id);
+                if ((int)host_recv_id == 1) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
                     sent_d1++;
                     printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
@@ -193,7 +195,7 @@ int main(int argc, char *argv[]) {
                     printf("Pkts sent to dest_2 so far: %d\n", sent_d2);
                 }
                 packets_sent++;
-                printf("Overall total pkts sent by router so far: %d\n", packets_sent);
+                //printf("Overall total pkts sent by router so far: %d\n", packets_sent);
                 free(dqd_pkt->buffer);
                 free(dqd_pkt);
             }
