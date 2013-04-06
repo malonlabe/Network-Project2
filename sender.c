@@ -20,11 +20,11 @@
 #include "common.h"
 
 //Input Arguments to sender.c:
-//argv[1] is Sender ID, which is either 1 or 2
+//argv[1] is Sender ID, which is either 1 (for Sender1) or 2 (for Sender2)
 //argv[2] is the mean value inter-packet time R in millisec (based on Poisson distr). 
-//argv[3] is the receiver ID, which is either 1 or 2
+//argv[3] is the receiver ID, which is either 1 (Receiver1) or 2 (Receiver2)
 //argv[4] is the router IP
-//argv[5] is the time duration in seconds (dictates how long sender will send packets to target).
+//argv[5] is the time duration in seconds (dictates how long sender will send pkts to target).
 
 int main(int argc, char *argv[]) {
     //Variables used for input arguments
@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     struct msg_payload payload;
     struct timeval start_time;
     struct timeval curr_time;
-    time_t delta_time = 0, curr_timestamp = 0;
+    time_t delta_time = 0, curr_timestamp_sec = 0, curr_timestamp_usec = 0;
     
     //Parsing input arguments
     if (argc != 6) {
@@ -67,7 +67,8 @@ int main(int argc, char *argv[]) {
     hints.ai_socktype = SOCK_DGRAM;
     
     /*
-     * DEBUGGING: CHANGED ROUTER_PORT TO get_receiver_port(1)
+     * for DEBUGGING purposes: change ROUTER_PORT TO get_receiver_port(1 or 2)
+     * to have the sender directly send packets to the receiver.
      */
     //Get target's address information
     if ((return_val = getaddrinfo(dest_ip, ROUTER_PORT, &hints,
@@ -85,20 +86,24 @@ int main(int argc, char *argv[]) {
     //Establishing the packet: filling packet information
     gettimeofday(&start_time, NULL);
     gettimeofday(&curr_time, NULL);
-    curr_timestamp = abs(curr_time.tv_sec * ONE_MILLION) + abs(curr_time.tv_usec);
+    curr_timestamp_sec = curr_time.tv_sec;
+    curr_timestamp_usec = curr_time.tv_usec; 
+    //curr_timestamp = abs(curr_time.tv_sec * ONE_MILLION) + abs(curr_time.tv_usec);
     printf("Current time: %f seconds %f microseconds\n", (double)curr_time.tv_sec, (double)curr_time.tv_usec);
-    printf("Current timestamp is %f\n", (double)curr_timestamp);
+    printf("Current timestamp is %d sec, %d usec\n", (int)curr_timestamp_sec, (int)curr_timestamp_usec);
+    
     memset(&payload, 0, sizeof payload);
     buffer = &payload;
     buffer->seq = htons((short)seq++); //packet sequence ID
     buffer->sender_id = htons((short)sender_id); //Sender ID
     buffer->receiver_id = htons((short)receiver_id); //Receiver ID
-    buffer->timestamp = htons((short)curr_timestamp); //Packet timestamp
+    buffer->timestamp_sec = htonl((long)curr_timestamp_sec); //Pkt timestamp_sec
+    buffer->timestamp_usec = htonl((long)curr_timestamp_usec); //Pkt timestamp_usec
     
     
     while ((delta_time / ONE_MILLION) < duration) {
         //printf("%s: payload size is %f Bytes\n", __func__, (double)sizeof(payload));
-        printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp-%d\n", ntohs(buffer->seq), ntohs(buffer->sender_id), ntohs(buffer->receiver_id), ntohs(buffer->timestamp));
+        printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec %d\n", ntohs(buffer->seq), ntohs(buffer->sender_id), ntohs(buffer->receiver_id), ntohl(buffer->timestamp_sec), ntohl(buffer->timestamp_usec));
         packet_success = sendto(sockfd, buffer, sizeof(struct msg_payload), 0, receiver_info->ai_addr, receiver_info->ai_addrlen);
         printf("Sender: Total packets sent so far: %d\n", seq);
         poisson_delay((double)r);
@@ -106,11 +111,14 @@ int main(int argc, char *argv[]) {
         //delta_time is elapsed time in microseconds
         //   (divide by ONE_MILLION to get seconds)
         delta_time = (curr_time.tv_sec * ONE_MILLION + curr_time.tv_usec) - (start_time.tv_sec * ONE_MILLION + start_time.tv_usec);
-        curr_timestamp = curr_time.tv_sec * ONE_MILLION + curr_time.tv_usec;
-        //packet timestamp is current time in microseconds
-        buffer->timestamp = htons((short)curr_timestamp);
+        
+        //Get the timestamp for the next packet
+        curr_timestamp_sec = curr_time.tv_sec;
+        curr_timestamp_usec = curr_time.tv_usec;
+        buffer->timestamp_sec = htonl((long)curr_timestamp_sec);
+        buffer->timestamp_usec = htonl((long)curr_timestamp_usec);
         buffer->seq = htons((short)seq++);
-        printf("Sender: Delta time: %d usec, current time: %d usec\n", (int)delta_time, (int)curr_timestamp);
+        printf("Sender: Delta time: %d usec, current time of seconds: %d sec, current time of microsec: %d microsec\n", (int)delta_time, (int)curr_timestamp_sec, (int)curr_timestamp_usec);
     }
     close(sockfd);
     return 0; 

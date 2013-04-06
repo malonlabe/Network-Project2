@@ -81,8 +81,9 @@ int main(int argc, char *argv[]) {
             buff->seq = ntohs((short) buff->seq);
             buff->sender_id = ntohs((short) buff->sender_id);
             buff->receiver_id = ntohs((short) buff->receiver_id);
-            buff->timestamp = ntohs((short) buff->timestamp);
-            printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp-%d\n", buff->seq, buff->sender_id, buff->receiver_id, buff->timestamp); 
+            buff->timestamp_sec = ntohl((long) buff->timestamp_sec);
+            buff->timestamp_usec = ntohl((long) buff->timestamp_usec);
+            printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec:%d\n", buff->seq, buff->sender_id, buff->receiver_id, (int)buff->timestamp_sec, (int)buff->timestamp_usec);
         }
     }
     close(sockfd);

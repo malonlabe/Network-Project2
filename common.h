@@ -10,15 +10,16 @@
 #define ONE_MILLION 1000000
 #define RECEIVER_PORT_BASE 5000
 
-//UDP datagram payload format
+//UDP datagram payload format, 128 bytes total
 struct msg_payload {
     unsigned int seq; //packet Sequence ID, 4 bytes
     //The timestamp is the delta_time, which is the calculated delta time between
     //the first packet sent and the current time (now) in microseconds
-    unsigned int timestamp; //4 bytes
+    unsigned long timestamp_sec; //seconds portion of timestamp, 8 bytes
+    unsigned long timestamp_usec; //microsec portion of timestamp, 8 bytes
     unsigned int sender_id; //4 bytes
     unsigned int receiver_id; //4 bytes
-    unsigned char msg[112];
+    unsigned char msg[100];
 } __pack__; //pack so that the CPU does not assign spacing between fields
 
 //The router queue is a linked list data structure (router_q) with q_elem nodes
@@ -30,7 +31,7 @@ struct q_elem { //q_elem is a linked list node
 struct router_q { 
     struct q_elem *head; //points to the q header
     struct q_elem *tail; // points to the q tail
-    unsigned int q_size; //number of q elements in the q
+    unsigned int q_size; //number of q elements in the router_q linked-list
     unsigned int drop_cnt; //how many received payloads that the buffer dropped
 };
 
