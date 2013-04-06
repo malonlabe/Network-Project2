@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
                 cum_q_size += q1->q_size;
                 q_dq_cnt++; 
                 avg_q_size = running_avg(q_dq_cnt, cum_q_size);
-                printf("Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size (1 queue total): %d\n", cum_q_size, q_dq_cnt, avg_q_size);
+                printf("SINGLE QUEUE - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size: %d\n", cum_q_size, q_dq_cnt, avg_q_size);
             }
             if (q_amount == 2) {
                 //The flow (sender1, destination1) is prioritized,
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
                     printf("Dequeued from q2, q2 size is %d\n", q2->q_size);
                     //Obtain the average queue 2 length
                     cum_q2_size += q2->q_size;
-                    q2_dq_cnt++;
+                    q2_dq_cnt++; 
                     avg_q2_size = running_avg(q2_dq_cnt, cum_q2_size);
                     printf("QUEUE 2 - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router Q2 size: %d\n", cum_q2_size, q2_dq_cnt, avg_q2_size);
                 }

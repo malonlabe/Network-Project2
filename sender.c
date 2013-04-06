@@ -21,7 +21,7 @@
 
 //Input Arguments to sender.c:
 //argv[1] is Sender ID, which is either 1 or 2
-//argv[2] is the mean value inter-packet time R (based on Poisson distr). 
+//argv[2] is the mean value inter-packet time R in millisec (based on Poisson distr). 
 //argv[3] is the receiver ID, which is either 1 or 2
 //argv[4] is the router IP
 //argv[5] is the time duration in seconds (dictates how long sender will send packets to target).
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     gettimeofday(&curr_time, NULL);
     curr_timestamp = abs(curr_time.tv_sec * ONE_MILLION) + abs(curr_time.tv_usec);
     printf("Current time: %f seconds %f microseconds\n", (double)curr_time.tv_sec, (double)curr_time.tv_usec);
-    printf("Current timestamp is %f\n", (double)curr_timestamp); 
+    printf("Current timestamp is %f\n", (double)curr_timestamp);
     memset(&payload, 0, sizeof payload);
     buffer = &payload;
     buffer->seq = htons((short)seq++); //packet sequence ID

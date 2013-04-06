@@ -40,7 +40,7 @@ int enqueue (struct q_elem *elem, struct router_q *q, unsigned int max_q_size) {
     } else {
         q->tail->next = elem;
     }
-    q->tail = elem;
+    q->tail = elem; 
     q->q_size++;
     elem->next = NULL;
     //printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
@@ -66,27 +66,31 @@ struct q_elem *dequeue (struct router_q *q) {
 }
 
 //Packet delay time, generates a time delay according to a poisson distribution
+/*
+ Because the rand() function isn't really random even when you seed random() with
+  the current time, it generates exponential numbers at poisson loop times. Not as
+  precise but has better "randomness" than without the looping (Otherwise you get
+  consistently very similar exponential values).
+ */
 void poisson_delay(double mean) {
-    
-    double l = 0, p = 1, rand_num = 0;
-    int k = 0, delay_time = 0;
+    double l = 0, p = 1; 
+    double delay_time = 0, rand_num = 0;
     struct timeval curr_time;
     
-    l = exp(-1 * mean);
-
-    do {
-        k++;
-        gettimeofday(&curr_time, NULL); 
-        srand(curr_time.tv_usec); //seed random number with current time
-        rand_num = rand()/(double)RAND_MAX; 
-        p = p * rand_num;
-        //printf("%s line %d p is: %f\n", __func__, __LINE__, p);
-    } while (p > l); 
+    l = exp(-1*mean);
+    gettimeofday(&curr_time, NULL);
+    srand(curr_time.tv_usec); //seed random number generator with current time
     
-    delay_time = k - 1;
-    printf("%s line %d delay is: %d milliseconds\n", __func__, __LINE__, delay_time);
-    usleep((useconds_t) (delay_time * 1000)); //usleep is in microseconds
-     
+    do {
+        rand_num = rand()/(double)RAND_MAX;
+        //printf("%s: The random number is %f\n", __func__, rand_num);
+        
+        p = p * rand_num;
+    } while (p > l);
+    
+    delay_time = -log(1.0 - rand_num)*mean;
+    printf("*****%s delay is: %f milliseconds\n",__func__, delay_time);
+    usleep((useconds_t) (delay_time * 1000)); //usleep is in usec, want microsec
 }
 
 //Function to retreive the port for a given receiver ID
