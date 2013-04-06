@@ -183,8 +183,8 @@ int main(int argc, char *argv[]) {
                 dqd_pkt = dequeue(q1);
                 //printf("Packet Sequence number %d\n", dqd_pkt->buffer->seq);
                 //Obtain the average queue length
+                q_dq_cnt++;
                 cum_q_size += q1->q_size;
-                q_dq_cnt++; 
                 avg_q_size = running_avg(q_dq_cnt, cum_q_size);
                 printf("SINGLE QUEUE - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size: %d\n", cum_q_size, q_dq_cnt, avg_q_size);
             }

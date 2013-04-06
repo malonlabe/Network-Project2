@@ -104,7 +104,8 @@ char *get_receiver_port(unsigned int receiver_id) {
 
 //Function to obtain a running average, given a count of total elements and the
 //  cumulative sum of the elements themselves. Used by the router to obtain the
-//  average length of each queue.
+//  average length of each queue. Also used by the receiver to obtain the  average
+//  packet delay from the sender to the receiver.
 unsigned int avg;
 unsigned int running_avg(unsigned int count, unsigned int cumulative) {
     avg = cumulative / count;
