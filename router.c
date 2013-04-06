@@ -26,7 +26,8 @@
 //argv[1] is the number of queues
 //argv[2] is the router dequeuing interval, or service rate in milliseconds,
 //  so one packet will be dequeued and sent per dequeuing interval
-//argv[3] is the maximum queue size (in packets)
+//argv[3] is the maximum queue size (in packets). If there are 2 queues, this argument
+//  means that the length of EACH queue = maximum queue size. 
 
 int main(int argc, char *argv[]) {
     //Variables used for input arguments
@@ -55,6 +56,13 @@ int main(int argc, char *argv[]) {
     struct timeval curr_time;
     time_t delta_time = 0; 
     unsigned int sent_flag = 0;
+    
+    //Variables used for obtaining average queue lengths
+    //q_dq_cnt: total number of dequeue operations performed so far
+    //cum_q_size: sum of all queue lengths for every dequeue operation so far
+    unsigned int q_dq_cnt = 0, q1_dq_cnt = 0, q2_dq_cnt = 0;
+    unsigned int cum_q_size = 0, cum_q1_size = 0, cum_q2_size = 0;
+    unsigned int avg_q_size = 0, avg_q1_size = 0, avg_q2_size = 0;
         
     //Parsing input arguments
     if (argc!= 4) {
@@ -174,6 +182,11 @@ int main(int argc, char *argv[]) {
             if (q_amount == 1) {
                 dqd_pkt = dequeue(q1);
                 //printf("Packet Sequence number %d\n", dqd_pkt->buffer->seq);
+                //Obtain the average queue length
+                cum_q_size += q1->q_size;
+                q_dq_cnt++; 
+                avg_q_size = running_avg(q_dq_cnt, cum_q_size);
+                printf("Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size (1 queue total): %d\n", cum_q_size, q_dq_cnt, avg_q_size);
             }
             if (q_amount == 2) {
                 //The flow (sender1, destination1) is prioritized,
@@ -181,9 +194,19 @@ int main(int argc, char *argv[]) {
                 if (q1->q_size > 0) {
                     dqd_pkt = dequeue(q1);
                     printf("Dequeued from q1, q1 size is %d\n", q1->q_size);
+                    //Obtain the average queue 1 length
+                    cum_q1_size += q1->q_size;
+                    q1_dq_cnt++;
+                    avg_q1_size = running_avg(q1_dq_cnt, cum_q1_size);
+                    printf("QUEUE 1 - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router Q1 size: %d\n", cum_q1_size, q1_dq_cnt, avg_q1_size);
                 } else {
                     dqd_pkt = dequeue(q2);
-                    printf("Dequeued from q2, q2 size is %d\n", q2->q_size); 
+                    printf("Dequeued from q2, q2 size is %d\n", q2->q_size);
+                    //Obtain the average queue 2 length
+                    cum_q2_size += q2->q_size;
+                    q2_dq_cnt++;
+                    avg_q2_size = running_avg(q2_dq_cnt, cum_q2_size);
+                    printf("QUEUE 2 - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router Q2 size: %d\n", cum_q2_size, q2_dq_cnt, avg_q2_size);
                 }
             }
             if (dqd_pkt != NULL) {

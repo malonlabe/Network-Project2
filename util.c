@@ -50,7 +50,7 @@ int enqueue (struct q_elem *elem, struct router_q *q, unsigned int max_q_size) {
 //Dequeue packets from linked list
 struct q_elem *dequeue (struct router_q *q) {
     struct q_elem *elem = NULL;
-    //printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
+    printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
     if (q->head == NULL) {
         return NULL;
     } else {
@@ -96,4 +96,14 @@ char *get_receiver_port(unsigned int receiver_id) {
     port = (RECEIVER_PORT_BASE + (receiver_id - 1));
     sprintf(port_str, "%d", port);
     return port_str; 
+}
+
+//Function to obtain a running average, given a count of total elements and the
+//  cumulative sum of the elements themselves. Used by the router to obtain the
+//  average length of each queue.
+unsigned int avg;
+unsigned int running_avg(unsigned int count, unsigned int cumulative) {
+    avg = cumulative / count;
+    printf("%s: is currently %d\n",__func__, avg);
+    return avg; 
 }
