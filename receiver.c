@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
 
     addr_len = sizeof their_addr;
     memset(&receival_time, 0, sizeof (struct timeval));
-    while (1) {
+    while (1) { 
         recv_success = recvfrom(sockfd, buff, sizeof (struct msg_payload), 0, (struct sockaddr *)&their_addr, &addr_len);
         gettimeofday(&receival_time, NULL);
         if (recv_success > 0) { //destination received a packet
