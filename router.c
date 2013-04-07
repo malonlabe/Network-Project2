@@ -197,10 +197,12 @@ int main(int argc, char *argv[]) {
                     dqd_pkt = dequeue(q1);
                     //printf("Dequeued from q1, q1 size is %d\n", q1->q_size);
                     //Obtain the average queue 1 length
-                    cum_q1_size += q1->q_size;
-                    q1_dq_cnt++;
-                    avg_q1_size = running_avg(q1_dq_cnt, cum_q1_size);
-                    printf("QUEUE 1 - Cum. sum of queue lengths: %d | # of dequeue operations: %d | Avg router Q1 size: %d | Avg router Q2 size: %d\n", cum_q1_size, q1_dq_cnt, avg_q1_size, avg_q2_size);
+                    if (q1->q_size != 0) {
+                        cum_q1_size += q1->q_size;
+                        q1_dq_cnt++;
+                        avg_q1_size = running_avg(q1_dq_cnt, cum_q1_size);
+                        printf("QUEUE 1 - Cum. sum of queue lengths: %d | # of dequeue operations: %d | Avg router Q1 size: %d | Avg router Q2 size: %d\n", cum_q1_size, q1_dq_cnt, avg_q1_size, avg_q2_size);
+                    }
                 } else {
                     dqd_pkt = dequeue(q2);
                     //printf("Dequeued from q2, q2 size is %d\n", q2->q_size);
