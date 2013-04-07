@@ -89,8 +89,8 @@ int main(int argc, char *argv[]) {
     curr_timestamp_sec = curr_time.tv_sec;
     curr_timestamp_usec = curr_time.tv_usec; 
     //curr_timestamp = abs(curr_time.tv_sec * ONE_MILLION) + abs(curr_time.tv_usec);
-    printf("Current time: %f seconds %f microseconds\n", (double)curr_time.tv_sec, (double)curr_time.tv_usec);
-    printf("Current timestamp is %d sec, %d usec\n", (int)curr_timestamp_sec, (int)curr_timestamp_usec);
+    //printf("Current time: %f seconds %f microseconds\n", (double)curr_time.tv_sec, (double)curr_time.tv_usec);
+    //printf("Current timestamp is %d sec, %d usec\n", (int)curr_timestamp_sec, (int)curr_timestamp_usec);
     
     memset(&payload, 0, sizeof payload);
     buffer = &payload;
@@ -118,7 +118,7 @@ int main(int argc, char *argv[]) {
         buffer->timestamp_sec = htonl((long)curr_timestamp_sec);
         buffer->timestamp_usec = htonl((long)curr_timestamp_usec);
         buffer->seq = htons((short)seq++);
-        printf("Sender: Delta time: %d usec, current time of seconds: %d sec, current time of microsec: %d microsec\n", (int)delta_time, (int)curr_timestamp_sec, (int)curr_timestamp_usec);
+        //printf("Sender: Delta time: %d usec, current time of seconds: %d sec, current time of microsec: %d microsec\n", (int)delta_time, (int)curr_timestamp_sec, (int)curr_timestamp_usec);
     }
     close(sockfd);
     return 0; 

@@ -92,11 +92,11 @@ int main(int argc, char *argv[]) {
             printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec:%d\n", buff->seq, buff->sender_id, buff->receiver_id, (int)buff->timestamp_sec, (int)buff->timestamp_usec);
             
             //Calculating the avg packet propagation/delay time in microsec
-            printf("Time of packet receival: %d sec, %d microsec\n", (int)receival_time.tv_sec, (int)receival_time.tv_usec);
+            //printf("Time of packet receival: %d sec, %d microsec\n", (int)receival_time.tv_sec, (int)receival_time.tv_usec);
             delta_time = abs((receival_time.tv_usec - buff->timestamp_usec) + (receival_time.tv_sec - buff->timestamp_sec) * ONE_MILLION);
             
             avg_pkt_delay = running_avg(rcvd_pkt_cnt, (unsigned int)delta_time);
-            printf("Delay time for this packet: %d microsec | Average packet delay:%d microsec\n", (int)delta_time, avg_pkt_delay);
+            //printf("Delay time for this packet: %d microsec | Average packet delay:%d microsec\n", (int)delta_time, avg_pkt_delay);
         }
     }
     close(sockfd);
