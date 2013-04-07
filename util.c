@@ -89,7 +89,7 @@ void poisson_delay(double mean) {
     } while (p > l);
     
     delay_time = -log(1.0 - rand_num)*mean;
-    printf("*****%s delay is: %f milliseconds\n",__func__, delay_time);
+    //printf("*****%s delay is: %f milliseconds\n",__func__, delay_time);
     usleep((useconds_t) (delay_time * 1000)); //usleep is in usec, want microsec
 }
 

@@ -215,6 +215,7 @@ int main(int argc, char *argv[]) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
                     sent_d1++;
                     //printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
+                    printf("Drop count %d\n", q1->drop_cnt); 
                 }
                 if ((int)host_recv_id == 2) {
                    sent_success = sendto(d2_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest2_info->ai_addr, dest2_info->ai_addrlen);
