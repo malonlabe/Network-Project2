@@ -36,6 +36,11 @@ int main(int argc, char *argv[]) {
     struct sockaddr_storage their_addr;
     socklen_t addr_len; 
     
+    //Variables used in calculating delay time
+    struct timeval receival_time; 
+    time_t delta_time = 0;
+    unsigned int avg_pkt_delay = 0;
+    
     //Parsing input argument
     if (argc != 2) {
         perror("Receiver: incorrect number of input arguments\n");
@@ -65,16 +70,17 @@ int main(int argc, char *argv[]) {
         printf("Receiver %d: unable to bind socket to port\n", receiver_id);
         return 4;
     }
-    printf("Receiver %d: waiting to recfrom...\n", receiver_id);
+    printf("Receiver %d: waiting to recvfrom...\n", receiver_id);
     
     //Memory allocation for buffering the incoming packets
     buff = malloc(sizeof (struct msg_payload));
     memset(buff, 0, sizeof (struct msg_payload));
 
-    addr_len = sizeof their_addr; 
+    addr_len = sizeof their_addr;
+    memset(&receival_time, 0, sizeof (struct timeval));
     while (1) {
         recv_success = recvfrom(sockfd, buff, sizeof (struct msg_payload), 0, (struct sockaddr *)&their_addr, &addr_len);
-        
+        gettimeofday(&receival_time, NULL);
         if (recv_success > 0) { //destination received a packet
             rcvd_pkt_cnt++;
             printf("Total packets recvfrom by receiver %d so far: %d\n", receiver_id, rcvd_pkt_cnt);
@@ -84,6 +90,13 @@ int main(int argc, char *argv[]) {
             buff->timestamp_sec = ntohl((long) buff->timestamp_sec);
             buff->timestamp_usec = ntohl((long) buff->timestamp_usec);
             printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec:%d\n", buff->seq, buff->sender_id, buff->receiver_id, (int)buff->timestamp_sec, (int)buff->timestamp_usec);
+            
+            //Calculating the avg packet propagation/delay time in microsec
+            printf("Time of packet receival: %d sec, %d microsec\n", (int)receival_time.tv_sec, (int)receival_time.tv_usec);
+            delta_time = abs((receival_time.tv_usec - buff->timestamp_usec) + (receival_time.tv_sec - buff->timestamp_sec) * ONE_MILLION);
+            
+            avg_pkt_delay = running_avg(rcvd_pkt_cnt, (unsigned int)delta_time);
+            printf("Delay time for this packet: %d microsec | Average packet delay:%d microsec\n", (int)delta_time, avg_pkt_delay);
         }
     }
     close(sockfd);
