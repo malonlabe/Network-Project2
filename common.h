@@ -13,13 +13,11 @@
 //UDP datagram payload format, 128 bytes total
 struct msg_payload {
     unsigned int seq; //packet Sequence ID, 4 bytes
-    //The timestamp is the delta_time, which is the calculated delta time between
-    //the first packet sent and the current time (now) in microseconds
-    unsigned long timestamp_sec; //seconds portion of timestamp, 8 bytes
-    unsigned long timestamp_usec; //microsec portion of timestamp, 8 bytes
+    unsigned int timestamp_sec; //seconds portion of timestamp, 4 bytes
+    unsigned int timestamp_usec; //microsec portion of timestamp, 4 bytes
     unsigned int sender_id; //4 bytes
     unsigned int receiver_id; //4 bytes
-    unsigned char msg[100];
+    unsigned char msg[108];
 } __pack__; //pack so that the CPU does not assign spacing between fields
 
 //The router queue is a linked list data structure (router_q) with q_elem nodes

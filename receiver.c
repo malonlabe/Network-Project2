@@ -84,11 +84,11 @@ int main(int argc, char *argv[]) {
         if (recv_success > 0) { //destination received a packet
             rcvd_pkt_cnt++;
             printf("Total packets recvfrom by receiver %d so far: %d\n", receiver_id, rcvd_pkt_cnt);
-            buff->seq = ntohs((short) buff->seq);
-            buff->sender_id = ntohs((short) buff->sender_id);
-            buff->receiver_id = ntohs((short) buff->receiver_id);
-            buff->timestamp_sec = ntohl((long) buff->timestamp_sec);
-            buff->timestamp_usec = ntohl((long) buff->timestamp_usec);
+            buff->seq = ntohl(buff->seq);
+            buff->sender_id = ntohl(buff->sender_id);
+            buff->receiver_id = ntohl(buff->receiver_id);
+            buff->timestamp_sec = ntohl(buff->timestamp_sec);
+            buff->timestamp_usec = ntohl(buff->timestamp_usec);
             printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec:%d\n", buff->seq, buff->sender_id, buff->receiver_id, (int)buff->timestamp_sec, (int)buff->timestamp_usec);
             
             //Calculating the avg packet propagation/delay time in microsec

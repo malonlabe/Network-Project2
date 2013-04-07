@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
     struct q_elem *node, *dqd_pkt = NULL;
     struct router_q *q1, *q2;
     int packets_sent = 0, sent_d1 = 0, sent_d2 = 0;
-    short host_recv_id = 0; 
+    unsigned int host_recv_id = 0;
     
     //Variables used for managing router service rate
     struct timeval last_time;
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
                 enq_return = enqueue(node, q1, max_q_size);
             }
             if (q_amount > 1) {
-                host_recv_id = ntohs(node->buffer->receiver_id); 
+                host_recv_id = ntohl(node->buffer->receiver_id);
                 if ((int)host_recv_id == 1) {
                    enq_return = enqueue(node, q1, max_q_size);
                 }
@@ -210,11 +210,11 @@ int main(int argc, char *argv[]) {
                 }
             }
             if (dqd_pkt != NULL) {
-                host_recv_id = ntohs(dqd_pkt->buffer->receiver_id);
+                host_recv_id = ntohl(dqd_pkt->buffer->receiver_id);
                 if ((int)host_recv_id == 1) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
                     sent_d1++;
-                    //printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
+                    printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
                     printf("Drop count %d\n", q1->drop_cnt); 
                 }
                 if ((int)host_recv_id == 2) {

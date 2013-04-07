@@ -94,16 +94,16 @@ int main(int argc, char *argv[]) {
     
     memset(&payload, 0, sizeof payload);
     buffer = &payload;
-    buffer->seq = htons((short)seq++); //packet sequence ID
-    buffer->sender_id = htons((short)sender_id); //Sender ID
-    buffer->receiver_id = htons((short)receiver_id); //Receiver ID
-    buffer->timestamp_sec = htonl((long)curr_timestamp_sec); //Pkt timestamp_sec
-    buffer->timestamp_usec = htonl((long)curr_timestamp_usec); //Pkt timestamp_usec
+    buffer->seq = htonl(seq++); //packet sequence ID
+    buffer->sender_id = htonl(sender_id); //Sender ID
+    buffer->receiver_id = htonl(receiver_id); //Receiver ID
+    buffer->timestamp_sec = htonl(curr_timestamp_sec); //Pkt timestamp_sec
+    buffer->timestamp_usec = htonl(curr_timestamp_usec); //Pkt timestamp_usec
     
     
     while ((delta_time / ONE_MILLION) < duration) {
         //printf("%s: payload size is %f Bytes\n", __func__, (double)sizeof(payload));
-        printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec %d\n", ntohs(buffer->seq), ntohs(buffer->sender_id), ntohs(buffer->receiver_id), ntohl(buffer->timestamp_sec), ntohl(buffer->timestamp_usec));
+        printf("Pkt data: seq#-%d, senderID-%d, receiverID-%d, timestamp_sec-%d, timestamp_usec %d\n", ntohl(buffer->seq), ntohl(buffer->sender_id), ntohl(buffer->receiver_id), ntohl(buffer->timestamp_sec), ntohl(buffer->timestamp_usec));
         packet_success = sendto(sockfd, buffer, sizeof(struct msg_payload), 0, receiver_info->ai_addr, receiver_info->ai_addrlen);
         printf("Sender: Total packets sent so far: %d\n", seq);
         poisson_delay((double)r);
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
         curr_timestamp_usec = curr_time.tv_usec;
         buffer->timestamp_sec = htonl((long)curr_timestamp_sec);
         buffer->timestamp_usec = htonl((long)curr_timestamp_usec);
-        buffer->seq = htons((short)seq++);
+        buffer->seq = htonl(seq++);
         //printf("Sender: Delta time: %d usec, current time of seconds: %d sec, current time of microsec: %d microsec\n", (int)delta_time, (int)curr_timestamp_sec, (int)curr_timestamp_usec);
     }
     close(sockfd);
