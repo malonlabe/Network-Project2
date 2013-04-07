@@ -50,7 +50,7 @@ int enqueue (struct q_elem *elem, struct router_q *q, unsigned int max_q_size) {
 //Dequeue packets from linked list
 struct q_elem *dequeue (struct router_q *q) {
     struct q_elem *elem = NULL;
-    printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
+    //printf("%s %d Queue size is %d\n", __func__, __LINE__, q->q_size);
     if (q->head == NULL) {
         return NULL;
     } else {

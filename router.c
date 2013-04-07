@@ -183,30 +183,34 @@ int main(int argc, char *argv[]) {
                 dqd_pkt = dequeue(q1);
                 //printf("Packet Sequence number %d\n", dqd_pkt->buffer->seq);
                 //Obtain the average queue length
-                q_dq_cnt++;
-                cum_q_size += q1->q_size;
-                avg_q_size = running_avg(q_dq_cnt, cum_q_size);
-                printf("SINGLE QUEUE - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size: %d\n", cum_q_size, q_dq_cnt, avg_q_size);
+                if (q1->q_size != 0) {
+                    q_dq_cnt++;
+                    cum_q_size += q1->q_size;
+                    avg_q_size = running_avg(q_dq_cnt, cum_q_size);
+                    printf("SINGLE QUEUE - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size: %d\n", cum_q_size, q_dq_cnt, avg_q_size);
+                }
             }
             if (q_amount == 2) {
                 //The flow (sender1, destination1) is prioritized,
                 //so dequeueing q1 is prioritized. Only dequeued from q2 if q1 is empty.
                 if (q1->q_size > 0) {
                     dqd_pkt = dequeue(q1);
-                    printf("Dequeued from q1, q1 size is %d\n", q1->q_size);
+                    //printf("Dequeued from q1, q1 size is %d\n", q1->q_size);
                     //Obtain the average queue 1 length
                     cum_q1_size += q1->q_size;
                     q1_dq_cnt++;
                     avg_q1_size = running_avg(q1_dq_cnt, cum_q1_size);
-                    printf("QUEUE 1 - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router Q1 size: %d\n", cum_q1_size, q1_dq_cnt, avg_q1_size);
+                    printf("QUEUE 1 - Cum. sum of queue lengths: %d | # of dequeue operations: %d | Avg router Q1 size: %d | Avg router Q2 size: %d\n", cum_q1_size, q1_dq_cnt, avg_q1_size, avg_q2_size);
                 } else {
                     dqd_pkt = dequeue(q2);
-                    printf("Dequeued from q2, q2 size is %d\n", q2->q_size);
+                    //printf("Dequeued from q2, q2 size is %d\n", q2->q_size);
                     //Obtain the average queue 2 length
-                    cum_q2_size += q2->q_size;
-                    q2_dq_cnt++; 
-                    avg_q2_size = running_avg(q2_dq_cnt, cum_q2_size);
-                    printf("QUEUE 2 - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router Q2 size: %d\n", cum_q2_size, q2_dq_cnt, avg_q2_size);
+                    if (q2->q_size != 0) {
+                        cum_q2_size += q2->q_size;
+                        q2_dq_cnt++; 
+                        avg_q2_size = running_avg(q2_dq_cnt, cum_q2_size);
+                        printf("QUEUE 2 - Cum. sum of queue lengths: %d | # of dequeue operations: %d | Avg router Q1 size: %d | Avg router Q2 size: %d\n", cum_q2_size, q2_dq_cnt, avg_q1_size, avg_q2_size);
+                    }
                 }
             }
             if (dqd_pkt != NULL) {
@@ -214,7 +218,7 @@ int main(int argc, char *argv[]) {
                 if ((int)host_recv_id == 1) {
                     sent_success = sendto(d1_sockfd, dqd_pkt->buffer, sizeof (struct msg_payload), 0, dest1_info->ai_addr, dest1_info->ai_addrlen);
                     sent_d1++;
-                    printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
+                    //printf("Pkts sent to dest_1 so far: %d\n", sent_d1);
                     printf("Drop count %d\n", q1->drop_cnt); 
                 }
                 if ((int)host_recv_id == 2) {
