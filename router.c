@@ -24,7 +24,7 @@
 
 //Input Arguments to router.c:
 //argv[1] is the number of queues
-//argv[2] is the router dequeuing interval, or service rate in milliseconds,
+//argv[2] is the router dequeuing interval, or service rate in milliseconds/pkt,
 //  so one packet will be dequeued and sent per dequeuing interval
 //argv[3] is the maximum queue size (in packets). If there are 2 queues, this argument
 //  means that the length of EACH queue = maximum queue size. 
@@ -186,7 +186,7 @@ int main(int argc, char *argv[]) {
                 if (q1->q_size != 0) {
                     q_dq_cnt++;
                     cum_q_size += q1->q_size;
-                    avg_q_size = running_avg(q1_dq_cnt, cum_q_size);
+                    avg_q_size = running_avg(q_dq_cnt, cum_q_size);
                     printf("SINGLE QUEUE - Cumulative sum of queue lengths: %d | # of dequeue operations: %d | Average router queue size: %d\n", cum_q_size, q_dq_cnt, avg_q_size);
                 }
             }
